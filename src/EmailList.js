@@ -15,19 +15,35 @@ import EmailRow from './EmailRow';
 import { useSelector } from 'react-redux';
 
 function EmailList() {
-  const [emails, setLoad] = useState([]);
+  const [emails, setEmails] = useState([]);
   const token = useSelector((state) => state.user.token);
   const receiver = useSelector((state) => state.user.email).replace('@gmail.com', '');
 
   useEffect(() => {
-    fetch(`https://hris-9fdcd-default-rtdb.firebaseio.com/mails/${receiver}.json?auth=${token}`)
-      .then((response) => response.json())
-      .then((data) => {
-        const mailDataArray = Object.values(data || {});
-        setLoad(mailDataArray.reverse());
-      })
-      .catch((error) => console.error(error));
+    const fetchEmails = () => {
+      fetch(`https://hris-9fdcd-default-rtdb.firebaseio.com/mails/${receiver}.json?auth=${token}`)
+        .then((response) => response.json())
+        .then((data) => {
+          const mailDataArray = Object.values(data || {});
+          setEmails(mailDataArray.reverse());
+        })
+        .catch((error) => console.error(error));
+    };
+
+    fetchEmails();
+
+    const interval = setInterval(fetchEmails, 2000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [receiver, token]);
+
+  const handleDeleteEmail = (emailId) => {
+    // Perform delete operation on the backend using the emailId
+    // Update the emails state by filtering out the deleted email
+    setEmails((prevEmails) => prevEmails.filter((email) => email.id !== emailId));
+  };
 
   return (
     <div className='emailList'>
@@ -71,6 +87,7 @@ function EmailList() {
             description={email.message}
             time={new Date(email.timestamp).toLocaleString()}
             index={emails.length - index - 1}
+            onDelete={handleDeleteEmail}
           />
         ))}
       </div>
