@@ -5,7 +5,7 @@ import { store } from './app/store';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
-import { persistStore } from 'redux-persist';
+
 
 const container = document.getElementById('root');
 const root = createRoot(container);

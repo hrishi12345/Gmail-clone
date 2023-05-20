@@ -6,19 +6,39 @@ import { Button } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { closeSendMessage } from './features/mailSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { addEmailToFirestore } from './firebase';
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 function SendMail() {
+  const [error, setError] = useState(null);
   const { register, handleSubmit, formState: { errors } } = useForm();
   const dispatch = useDispatch();
-  const from=useSelector(state=>state.user.email).replace('@gmail.com','')
-  
+  const receiver = useSelector((state) => state.user.email).replace('@gmail.com', '');
+  const token = useSelector((state) => state.user.token);
+
   const onSubmit = (data) => {
-    // Handle form submission
-    const newdata={...data,from}
-    
-    addEmailToFirestore(newdata);
-    dispatch(closeSendMessage());
+    const id = uuidv4();
+    const newMail = {id,...data, receiver, timestamp: new Date().toISOString() };
+  
+    console.log(token);
+    console.log(newMail);
+  
+    fetch(`https://hris-9fdcd-default-rtdb.firebaseio.com/mails/${receiver}/${id}.json?auth=${token}`, {
+      method: 'PUT',
+      body: JSON.stringify(newMail)
+    })
+      .then(response => {
+        if (response.ok) {
+          console.log('Email added to Realtime Database successfully');
+          dispatch(closeSendMessage());
+        } else {
+          throw new Error('Error adding email to Realtime Database');
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        setError('Error adding email to Realtime Database');
+      });
   };
 
   return (
@@ -45,6 +65,7 @@ function SendMail() {
           </Button>
         </div>
       </form>
+      {error && <p>{error}</p>}
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import './EmailList.css';
 import { IconButton } from '@mui/material';
@@ -13,43 +12,22 @@ import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import Section from './Section';
 import EmailRow from './EmailRow';
-import db from './firebase';
-import { collection, onSnapshot, orderBy, query, updateDoc, doc } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
 
 function EmailList() {
-  const [emails, setEmails] = useState([]);
-  const [selectedEmailId, setSelectedEmailId] = useState(null);
+  const [emails, setLoad] = useState([]);
+  const token = useSelector((state) => state.user.token);
+  const receiver = useSelector((state) => state.user.email).replace('@gmail.com', '');
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      query(collection(db, 'emails'), orderBy('timestamp', 'desc')),
-      (snapshot) => {
-        const fetchedEmails = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setEmails(fetchedEmails);
-      }
-    );
-
-    return () => {
-      // Unsubscribe from the snapshot listener when the component unmounts
-      unsubscribe();
-    };
-  }, []);
-
-  const markAsRead = (emailId) => {
-    // Update the 'status' field of the email document to 'read'
-    const emailRef = doc(db, 'emails', emailId);
-    updateDoc(emailRef, { status: 'read' })
-      .then(() => {
-        setSelectedEmailId(emailId);
-        console.log('Email marked as read successfully');
+    fetch(`https://hris-9fdcd-default-rtdb.firebaseio.com/mails/${receiver}.json?auth=${token}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const mailDataArray = Object.values(data || {});
+        setLoad(mailDataArray.reverse());
       })
-      .catch((error) => {
-        console.error('Error marking email as read:', error);
-      });
-  };
+      .catch((error) => console.error(error));
+  }, [receiver, token]);
 
   return (
     <div className='emailList'>
@@ -83,18 +61,16 @@ function EmailList() {
         <Section Icon={PeopleAltIcon} title='Social' />
       </div>
       <div className='emailList__list'>
-        {emails.map((email) => (
+        {emails.map((email, index) => (
           <EmailRow
             key={email.id}
             id={email.id}
             from={email.from}
             title={email.subject}
             subject={email.message}
-            description={email.from}
+            description={email.message}
             time={new Date(email.timestamp).toLocaleString()}
-            read={email.status === 'read'}
-            isSelected={selectedEmailId === email.id}
-            onClick={() => markAsRead(email.id)}
+            index={emails.length - index - 1}
           />
         ))}
       </div>

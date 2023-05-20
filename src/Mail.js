@@ -14,8 +14,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectSelectedMail } from './features/mailSlice';
-import Header from './Header';
-import Sidebar from './Sidebar';
 
 
 function Mail() {

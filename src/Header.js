@@ -1,12 +1,18 @@
 import MenuIcon from '@mui/icons-material/Menu';
-import { Avatar, IconButton } from '@mui/material';
+import { Avatar, Button, IconButton } from '@mui/material';
 import './Header.css'
 import SearchIcon from '@mui/icons-material/Search';
 import { ArrowDropDown } from '@mui/icons-material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AppsIcon from '@mui/icons-material/Apps';
+import { useDispatch } from 'react-redux';
+import { logout } from './features/userSlice';
 function Header(){
+  const dispatch=useDispatch()
+  const logouthandler=()=>{
+    dispatch(logout())
+  }
     return(
         <div className="header">
           <div className='header__left'>
@@ -31,6 +37,7 @@ function Header(){
             <AppsIcon />
            </IconButton>
            <Avatar />
+           <Button onClick={logouthandler}>Logout</Button>
           </div>
         </div >
     )
